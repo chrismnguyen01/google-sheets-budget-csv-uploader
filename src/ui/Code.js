@@ -13,7 +13,7 @@ function onOpen() {
  * Opens the HTML dialog for uploading CSV files.
  */
 function showUploadDialog() {
-  const html = HtmlService.createHtmlOutputFromFile("upload")
+  const html = HtmlService.createHtmlOutputFromFile("src/ui/upload")
     .setWidth(500)
     .setHeight(600);
   SpreadsheetApp.getUi().showModalDialog(html, "Upload Statement CSV");
