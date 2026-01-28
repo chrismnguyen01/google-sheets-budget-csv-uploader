@@ -2,9 +2,10 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <!-- Cabin font -->
+    <!-- Cabin font for a clean look -->
     <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;600&display=swap" rel="stylesheet">
     <style>
+      /* Global body styles */
       body {
         font-family: 'Cabin', sans-serif;
         background-color: #f8f0dc;
@@ -13,6 +14,7 @@
         margin: 0;
       }
 
+      /* Drag-and-drop container */
       .drop-zone {
         border: 2px dashed #3e220f;
         border-radius: 8px;
@@ -24,12 +26,14 @@
         cursor: pointer;
       }
 
+      /* Drag-over visual effect */
       .drop-zone.dragover {
         background-color: #ac7c5a;
         transform: scale(1.02);
         box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       }
 
+      /* Display selected file name */
       .file-name {
         display: inline-block;
         font-weight: 600;
@@ -37,12 +41,13 @@
         animation: fadeIn 0.5s ease;
       }
 
+      /* Label above each drop zone */
       .file-label {
-        font-size: 18px;        /* Bigger text */
-        font-weight: 600;       /* Bold */
-        color: #000000;         /* Dark brown, matches your theme */
-        display: block;         /* Make sure it’s on its own line */
-        margin-bottom: 6px;     /* Space between label and drop zone */
+        font-size: 18px;
+        font-weight: 600;
+        color: #000000;
+        display: block;
+        margin-bottom: 6px;
       }
 
       @keyframes fadeIn {
@@ -50,17 +55,17 @@
         to { opacity: 1; transform: translateY(0); }
       }
 
+      /* Upload button styles */
       button {
-        width: 100%;               /* Full width of the container */
-        max-width: 300px;          /* Optional: prevent it from being too wide */
-        margin: 20px auto 0 auto;  /* Center horizontally and add top margin */
-        display: block;            /* Required for margin auto to work */
-        
+        width: 100%;
+        max-width: 300px;
+        margin: 20px auto 0 auto;
+        display: block;
         background: linear-gradient(145deg, #3e220f, #552e14);
         color: #fffaec;
         border: none;
         border-radius: 8px;
-        padding: 12px 0;           /* Full width, adjust vertical padding */
+        padding: 12px 0;
         font-size: 16px;
         font-weight: 600;
         cursor: pointer;
@@ -94,6 +99,7 @@
   </head>
 
   <body>
+    <!-- Overlay while uploading -->
     <div id="loadingOverlay" style="
         display: none;
         position: fixed;
@@ -109,42 +115,49 @@
       Uploading files, please wait...
     </div>
 
+    <!-- CSV drop zones for each account -->
     <div>
-      <label class="file-label">Capital One Venture X:</label class="file-label">
+      <label class="file-label">Capital One Venture X:</label>
       <div id="drop1" class="drop-zone">Drag & drop file here or click to select</div>
       <input type="file" id="file1" accept=".csv" style="display:none;">
     </div>
 
     <div>
-      <label class="file-label">Capital One Savor One:</label class="file-label">
+      <label class="file-label">Capital One Savor One:</label>
       <div id="drop2" class="drop-zone">Drag & drop file here or click to select</div>
       <input type="file" id="file2" accept=".csv" style="display:none;">
     </div>
 
     <div>
-      <label class="file-label">Chase Amazon:</label class="file-label">
+      <label class="file-label">Chase Amazon:</label>
       <div id="drop3" class="drop-zone">Drag & drop file here or click to select</div>
       <input type="file" id="file3" accept=".csv" style="display:none;">
     </div>
 
     <div>
-      <label class="file-label">Venmo:</label class="file-label">
+      <label class="file-label">Venmo:</label>
       <div id="drop4" class="drop-zone">Drag & drop file here or click to select</div>
       <input type="file" id="file4" accept=".csv" style="display:none;">
     </div>
 
-    <br>
-  <div id="loadingContainer" style="display:none; margin-top:20px; text-align:center;">
-    <div style="width:100%; background-color:#ddd; border-radius:8px; overflow:hidden; height:20px;">
-      <div id="loadingBar" style="width:0%; height:100%; background-color:#3e220f; text-align:center; color:#fff; line-height:20px; font-weight:bold;">
-        0%
+    <!-- Progress bar -->
+    <div id="loadingContainer" style="display:none; margin-top:20px; text-align:center;">
+      <div style="width:100%; background-color:#ddd; border-radius:8px; overflow:hidden; height:20px;">
+        <div id="loadingBar" style="width:0%; height:100%; background-color:#3e220f; text-align:center; color:#fff; line-height:20px; font-weight:bold;">
+          0%
+        </div>
       </div>
+      <div id="loadingText" style="margin-top:5px; font-size:14px;">Uploading...</div>
     </div>
-    <div id="loadingText" style="margin-top:5px; font-size:14px;">Uploading...</div>
-  </div>
+
     <button id="uploadBtn">Upload</button>
 
     <script>
+      /**
+       * Sets up a single drag-and-drop + file picker area
+       * @param {string} dropId - Drop zone div ID
+       * @param {string} fileId - Hidden input file ID
+       */
       function setupDropZone(dropId, fileId) {
         const dropZone = document.getElementById(dropId);
         const fileInput = document.getElementById(fileId);
@@ -157,20 +170,9 @@
           dropZone.appendChild(span);
         }
 
-        // Click to open file picker
         dropZone.addEventListener("click", () => fileInput.click());
-
-        // Drag over / leave
-        dropZone.addEventListener("dragover", e => {
-          e.preventDefault();
-          dropZone.classList.add("dragover");
-        });
-        dropZone.addEventListener("dragleave", e => {
-          e.preventDefault();
-          dropZone.classList.remove("dragover");
-        });
-
-        // Drop file
+        dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("dragover"); });
+        dropZone.addEventListener("dragleave", e => { e.preventDefault(); dropZone.classList.remove("dragover"); });
         dropZone.addEventListener("drop", e => {
           e.preventDefault();
           dropZone.classList.remove("dragover");
@@ -178,19 +180,21 @@
           if (fileInput.files.length > 0) showFileName(fileInput.files[0]);
         });
 
-        // File picker change
         fileInput.addEventListener("change", () => {
           if (fileInput.files.length > 0) showFileName(fileInput.files[0]);
         });
       }
 
-      // Initialize the 3 drop zones
-      setupDropZone("drop1", "file1");
-      setupDropZone("drop2", "file2");
-      setupDropZone("drop3", "file3");
-      setupDropZone("drop4", "file4");
+      // Initialize all drop zones
+      ["drop1","drop2","drop3","drop4"].forEach((id,i) => setupDropZone(id,"file"+(i+1)));
 
-      // Upload logic (aggregated)
+      /**
+       * Upload button logic:
+       * 1. Reads all CSV files
+       * 2. Sends CSV content to Apps Script parser (processCSVWithType)
+       * 3. Writes results to sheet (writeAggregatedTables)
+       * 4. Animates progress bar
+       */
       document.getElementById("uploadBtn").addEventListener("click", () => {
         const loadingContainer = document.getElementById("loadingContainer");
         const loadingText = document.getElementById("loadingText");
@@ -198,9 +202,6 @@
 
         loadingContainer.style.display = "block";
         let progress = 0;
-        bar.style.width = progress + "%";
-        bar.textContent = progress + "%";
-        loadingText.textContent = "Reading Files...";
 
         const files = [
           {id: "file1", type: "Capital One Venture X"},
@@ -209,7 +210,7 @@
           {id: "file4", type: "Venmo"}
         ];
 
-        // Read all files in browser
+        // Read CSVs in browser, call Apps Script parser
         const readPromises = files.map(f => {
           const fileInput = document.getElementById(f.id);
           if (!fileInput.files[0]) return Promise.resolve(null);
@@ -225,7 +226,7 @@
           });
         });
 
-        // Smooth animation helper
+        // Animate progress bar smoothly
         function animateTo(target, speed = 1, callback) {
           const interval = setInterval(() => {
             if (progress < target) {
@@ -237,19 +238,16 @@
               clearInterval(interval);
               if (callback) callback();
             }
-          }, 20); // 20ms per tick → smooth
+          }, 20);
         }
 
-        // Animate 0 → 50% while reading
-        animateTo(50, 0.5);
+        animateTo(50, 0.5); // reading files
 
         Promise.all(readPromises).then(results => {
           loadingText.textContent = "Writing to Sheet...";
-          // Animate 50 → 90% while waiting for sheet write
           animateTo(90, 0.3);
 
           google.script.run.withSuccessHandler(() => {
-            // Animate 90 → 100% when done
             animateTo(100, 0.5, () => {
               loadingText.textContent = "Done!";
               setTimeout(() => google.script.host.close(), 500);

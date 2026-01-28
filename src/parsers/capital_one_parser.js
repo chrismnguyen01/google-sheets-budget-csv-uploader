@@ -1,3 +1,16 @@
+/**
+ * Processes a Capital One Venture X CSV statement.
+ *
+ * Parses the CSV, categorizes transactions as "wants" or "needs",
+ * and normalizes amounts. Transportation transactions are treated
+ * as wants, Gas/Automotive as needs, and other categories mapped
+ * using categoryMap.
+ *
+ * @param {string} csvText - Raw CSV text from Capital One Venture X statement
+ * @returns {{wants: Array<Array>, needs: Array<Array>}} Object containing
+ *          two arrays: wants and needs, each with rows:
+ *          [description, amount, category, postedDate]
+ */
 function processCapitalOneVentureXCSV(csvText) {
   const rows = Utilities.parseCsv(csvText);
   rows.shift(); // remove header
@@ -37,39 +50,37 @@ function processCapitalOneVentureXCSV(csvText) {
       descLower.includes("uber") ||
       descLower.includes("lyft")
     ) {
-      wants.push([
-        desc,
-        finalAmount,
-        "Transportation",
-        postedDate
-      ]);
+      wants.push([desc, finalAmount, "Transportation", postedDate]);
       return;
     }
 
     // Gas → needs
     if (category === "Gas/Automotive") {
-      needs.push([
-        desc,
-        finalAmount,
-        "Gas",
-        postedDate
-      ]);
+      needs.push([desc, finalAmount, "Gas", postedDate]);
       return;
     }
 
     // Default → wants
     const finalCategory = categoryMap[category] || category;
-    wants.push([
-      desc,
-      finalAmount,
-      finalCategory,
-      postedDate
-    ]);
+    wants.push([desc, finalAmount, finalCategory, postedDate]);
   });
 
   return { wants, needs };
 }
 
+
+/**
+ * Processes a Capital One Savor One CSV statement.
+ *
+ * Parses the CSV, categorizes transactions as "wants" (Dining) or
+ * "needs" (Groceries), and normalizes amounts. Uses a categoryMap
+ * for mapping some categories to consistent output.
+ *
+ * @param {string} csvText - Raw CSV text from Capital One Savor One statement
+ * @returns {{wants: Array<Array>, needs: Array<Array>}} Object containing
+ *          two arrays: wants and needs, each with rows:
+ *          [description, amount, category, postedDate]
+ */
 function processCapitalOneSavorOneCSV(csvText) {
   const rows = Utilities.parseCsv(csvText);
   rows.shift(); // remove header
@@ -91,12 +102,16 @@ function processCapitalOneSavorOneCSV(csvText) {
     if (!description && !debit && !credit) return; // empty row
     if (category === "Payment/Credit") return;
 
+    // Determine final amount
     let finalDebit = debit;
     if ((!debit || debit === "") && credit) finalDebit = -Number(credit);
 
+    // Map category
     const finalCategory = categoryMap[category] || category;
+
     const outputRow = [description, finalDebit, finalCategory, postedDate];
 
+    // Sort into wants or needs
     if (finalCategory === "Dining") wants.push(outputRow);
     else if (finalCategory === "Groceries") needs.push(outputRow);
   });

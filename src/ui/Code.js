@@ -1,4 +1,7 @@
-// Add custom menu
+/**
+ * Adds a custom "Transactions" menu to the Google Sheet
+ * with an option to upload statement CSVs.
+ */
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu("Transactions")
@@ -6,7 +9,9 @@ function onOpen() {
     .addToUi();
 }
 
-// Show HTML dialog
+/**
+ * Opens the HTML dialog for uploading CSV files.
+ */
 function showUploadDialog() {
   const html = HtmlService.createHtmlOutputFromFile("upload")
     .setWidth(500)
@@ -14,7 +19,14 @@ function showUploadDialog() {
   SpreadsheetApp.getUi().showModalDialog(html, "Upload Statement CSV");
 }
 
-// Helper: get last filled row in a column (from startRow downward)
+/**
+ * Finds the last filled row in a given column, starting from startRow.
+ *
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet - The sheet to search
+ * @param {number} startRow - Row to start searching from
+ * @param {number} col - Column to check
+ * @returns {number} Last filled row number, or startRow-1 if none
+ */
 function getLastFilledRow(sheet, startRow, col) {
   const data = sheet.getRange(startRow, col, sheet.getMaxRows() - startRow + 1).getValues();
   for (let i = data.length - 1; i >= 0; i--) {
@@ -23,8 +35,15 @@ function getLastFilledRow(sheet, startRow, col) {
   return startRow - 1;
 }
 
-// ---------- Aggregation Function ----------
-// Receives CSV text and type, returns object {wants: [], needs: []}
+/**
+ * Routes CSV text to the correct parser based on statement type.
+ *
+ * @param {string} csvText - Raw CSV text
+ * @param {string} statementType - One of:
+ *   "Capital One Venture X", "Capital One Savor One", "Chase Amazon", "Venmo"
+ * @returns {{wants: Array<Array>, needs: Array<Array>}} Parsed transaction tables
+ * @throws {Error} If statementType is unknown
+ */
 function processCSVWithType(csvText, statementType) {
   if (statementType === "Capital One Venture X") return processCapitalOneVentureXCSV(csvText);
   if (statementType === "Capital One Savor One") return processCapitalOneSavorOneCSV(csvText);
@@ -33,6 +52,15 @@ function processCSVWithType(csvText, statementType) {
   throw new Error("Unknown statement type: " + statementType);
 }
 
+/**
+ * Writes aggregated wants and needs tables to the active sheet.
+ *
+ * - Wants are written starting at column B, row 21
+ * - Needs are written starting at column G, row 21
+ * - After writing, both tables are sorted
+ *
+ * @param {Array<Object>} aggregatedResults - Array of parsed CSV results
+ */
 function writeAggregatedTables(aggregatedResults) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   let allWants = [];
@@ -56,10 +84,16 @@ function writeAggregatedTables(aggregatedResults) {
     sheet.getRange(startRow2, 7, allNeeds.length, allNeeds[0].length).setValues(allNeeds);
   }
 
-  // ----------- Call sortTables AFTER writing all data -----------
+  // Sort tables after writing
   sortTables();
 }
 
+/**
+ * Sorts the "wants" and "needs" tables on the sheet.
+ *
+ * - Wants: B21:E? sorted by column E ascending
+ * - Needs: G21:J? sorted by column J ascending
+ */
 function sortTables() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
 
@@ -69,7 +103,7 @@ function sortTables() {
   const table1EndRow = getLastFilledRow(sheet, table1StartRow, table1StartCol);
   if (table1EndRow >= table1StartRow) {
     const table1Range = sheet.getRange(table1StartRow, table1StartCol, table1EndRow - table1StartRow + 1, 4);
-    table1Range.sort([{ column: 5, ascending: true }]); // Sort by column E (5th in range)
+    table1Range.sort([{ column: 5, ascending: true }]); // Sort by column E
   }
 
   // ---------- Needs: G21:J? ----------
@@ -78,6 +112,6 @@ function sortTables() {
   const table2EndRow = getLastFilledRow(sheet, table2StartRow, table2StartCol);
   if (table2EndRow >= table2StartRow) {
     const table2Range = sheet.getRange(table2StartRow, table2StartCol, table2EndRow - table2StartRow + 1, 4);
-    table2Range.sort([{ column: 10, ascending: true }]); // Sort by column J (4th in range)
+    table2Range.sort([{ column: 10, ascending: true }]); // Sort by column J
   }
 }
